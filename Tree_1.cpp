@@ -14,6 +14,10 @@ struct node_t
 
 //=============================================================================
 
+void Play (node_t *node);
+
+//=============================================================================
+
 node_t *Create_Node (char *data);
 
 node_t *Make_Tree (FILE *fin);
@@ -39,6 +43,23 @@ int main ()
 
     node_t *node = Make_Tree (fin);
 
+    Play (node);
+//    txInputBox ("AAA", "Katya");
+//    PNG_Dump (node);
+//    B_Dump (node, x0, y0, x1, y1);
+
+    fclose (fin);
+    fclose (fout);
+
+    return 0;
+}
+
+//=============================================================================
+
+void Play (node_t *node)
+{
+    node_t *start = node;
+
     txCreateWindow (1600, 1000);
 
     double x0 = 760;
@@ -50,24 +71,52 @@ int main ()
     txSelectFont ("Comic Sans MS", 56);
     txSetFillColor (TX_BLACK);
 
-    int ok = 0;
+    int ok1 = 0;
     while (!GetAsyncKeyState (VK_ESCAPE))
     {
-        if (ok == 0)
+        if (ok1 == 0)
         {
-            txClear();
+            txClear ();
             if (node -> left != nullptr || node -> right != nullptr)
             {
-                txTextOut (x0 - strlen (node -> data) * 8, y0, node -> data);
+                txTextOut (x0 - strlen (node -> data) * 8 - 10, y0, node -> data);
+                txTextOut (x0 + strlen (node -> data) * 13 - 10, y0, "?");
                 txTextOut (x0 - 150, y0 + 100, "NO");
                 txTextOut (x0 + 100, y0 + 100, "YES");
-                ok = 1;
+                ok1 = 1;
             }
             else
             {
-                txTextOut (x0 - strlen (node -> data) * 8 - 44, y0 - 50, "ANSWER:");
-                txTextOut (x0 - strlen (node -> data) * 8, y0, node -> data);
-                ok = 1;
+                txTextOut (x0 - strlen (node -> data) * 8 - 24, y0 - 50, "ANSWER:");
+                txSetColor (TX_ORANGE);
+                txTextOut (x0 - strlen (node -> data) * 8 - 6, y0, node -> data);
+                txSetColor (TX_WHITE);
+                txTextOut (x0 - strlen (node -> data) * 8, y0 + 70, "True?");
+                txTextOut (x0 - 180, y0 + 150, "NO");
+                txTextOut (x0 + 100, y0 + 150, "YES");
+                ok1 = 1;
+
+                int ok2 = 0;
+                while (ok2 == 0)
+                {
+                    if (GetAsyncKeyState (VK_LEFT))
+                    {
+                        Add_Node (node);
+                        ok2 = 1;
+                        ok1 = 0;
+                        node = start;
+                        txSleep (300);
+                    }
+                    else if (GetAsyncKeyState (VK_RIGHT))
+                    {
+                        txClear ();
+                        txSetColor (TX_MAGENTA);
+                        txSelectFont ("Arial", 100, 40, 700, "italic");
+                        txTextOut (x0 - 200, y0, "I KNEW IT!");
+                        ok2 = 1;
+                        txSleep (300);
+                    }
+                }
             }
         }
 
@@ -75,8 +124,11 @@ int main ()
         {
             if (node -> right)
             {
+                txSetColor (TX_YELLOW);
+                txTextOut (x0 + 100, y0 + 100, "YES");
+                txSetColor (TX_WHITE);
                 node = node -> right;
-                ok = 0;
+                ok1 = 0;
                 txSleep (300);
             }
 
@@ -85,20 +137,15 @@ int main ()
         {
             if (node -> left)
             {
+                txSetColor (TX_YELLOW);
+                txTextOut (x0 - 150, y0 + 100, "NO");
+                txSetColor (TX_WHITE);
                 node = node -> left;
-                ok = 0;
+                ok1 = 0;
                 txSleep (300);
             }
         }
     }
-//    txInputBox ("AAA", "Katya");
-//    PNG_Dump (node);
-//    B_Dump (node, x0, y0, x1, y1);
-
-    fclose (fin);
-    fclose (fout);
-
-    return 0;
 }
 
 //=============================================================================
@@ -189,9 +236,9 @@ void *Add_Node (node_t *node)
 
     char difference[50] = "Inter difference between ";
 
-    strcpy (difference + strlen (difference), answer);
-    strcpy (difference + strlen (difference), " and ");
-    strcpy (difference + strlen (difference), node -> data);
+    strcat (difference, answer);
+    strcat (difference, " and ");
+    strcat (difference, node -> data);
 
     node -> data = (char *) txInputBox (difference, "DK");
 }
