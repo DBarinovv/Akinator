@@ -14,7 +14,7 @@ struct node_t
 
 //=============================================================================
 
-void Play (node_t *node);
+void Play (node_t *node, FILE *fout);
 
 //=============================================================================
 
@@ -30,7 +30,13 @@ void B_Dump (node_t *node, const double x0, const double y0, const double x1, co
 
 void PNG_Dump (node_t *node);
 
-void FS (node_t *node, FILE *fout);
+void Print_PNG (node_t *node, FILE *fout);
+
+//-----------------------------------------------------------------------------
+
+void Make_Fout  (node_t *node, FILE *fout);
+
+void Print_Fout (node_t *node, FILE *fout);
 
 //=============================================================================
 
@@ -38,15 +44,18 @@ int main ()
 {
     char *name_of_fin = "input.txt";
 
-    FILE *fin  = fopen (name_of_fin,  "r");
-    FILE *fout = fopen ("output.txt", "w");
+    FILE *fin   = fopen (name_of_fin,  "r");
+    FILE *fout  = fopen ("output.txt", "w");
+    FILE *foutD = fopen ("outdot.txt", "w");
 
     node_t *node = Make_Tree (fin);
 
-    Play (node);
+//    Play (node, fout);
 //    txInputBox ("AAA", "Katya");
 //    PNG_Dump (node);
 //    B_Dump (node, x0, y0, x1, y1);
+
+    Make_Fout (node, fout);
 
     fclose (fin);
     fclose (fout);
@@ -56,8 +65,9 @@ int main ()
 
 //=============================================================================
 
-void Play (node_t *node)
+void Play (node_t *node, FILE *fout)
 {
+    char *trip = (char *) calloc (100, sizeof (char));
     node_t *start = node;
 
     txCreateWindow (1600, 1000);
@@ -72,7 +82,7 @@ void Play (node_t *node)
     txSetFillColor (TX_BLACK);
 
     int ok1 = 0;
-    while (!GetAsyncKeyState (VK_ESCAPE))
+    while (!GetAsyncKeyState (VK_SHIFT))
     {
         if (ok1 == 0)
         {
@@ -102,9 +112,13 @@ void Play (node_t *node)
                     if (GetAsyncKeyState (VK_LEFT))
                     {
                         Add_Node (node);
+//                        Make_Fout (start, fout);
+//                        exit (1);
+//                        start = Make_Tree (fout);
+                        node = start;
                         ok2 = 1;
                         ok1 = 0;
-                        node = start;
+//                        node = start;
                         txSleep (300);
                     }
                     else if (GetAsyncKeyState (VK_RIGHT))
@@ -164,11 +178,16 @@ node_t* Create_Node (char *data)
 
 //=============================================================================
 
+//#define PRF\
+    fprintf (fout, "%s", line);  // printf in file fout
+
+//-----------------------------------------------------------------------------
+
 node_t *Make_Tree (FILE *fin)
 {
     char *line = (char *) calloc (20, sizeof (char));
 
-    if (fscanf (fin, "%[{]s", line) == EOF)
+    if (fscanf (fin, " %[{]s", line) == EOF)
         return nullptr;
 
     fscanf (fin, "%[']s",  line);
@@ -179,15 +198,14 @@ node_t *Make_Tree (FILE *fin)
     if (fscanf (fin, "%[']s", line) == EOF)
         return nullptr;
 
-
     if (fscanf (fin, " %[^{ ]s", line) == EOF)
         return nullptr;
-
 //    printf ("Line = %s\n", line);
 
     if (strcmp (line, "nill") == 0)                // no left
     {
         fscanf (fin, " %[}]s ", line);             // no left,  no right
+
         if (strcmp (line, "nill") == 0)
         {
             return node;
@@ -270,26 +288,60 @@ void PNG_Dump (node_t *node)
     fprintf (fout, "digraph\n");
     fprintf (fout, "{\n");
 
-    FS (node, fout);
+    Print_PNG (node, fout);
 
     fprintf (fout, "}");
 
     fclose (fout);
 }
 
-//=============================================================================
+//-----------------------------------------------------------------------------
 
-void FS (node_t *node, FILE *fout)
+void Print_PNG (node_t *node, FILE *fout)
 {
     if (node -> left)
     {
         fprintf (fout, "\"%s\"->\"%s\";\n", node -> data, (node -> left) -> data);
-        FS (node -> left, fout);
+        Print_PNG (node -> left, fout);
     }
 
     if (node -> right)
     {
         fprintf (fout, "\"%s\"->\"%s\";\n", node -> data, (node -> right) -> data);
-        FS (node -> right, fout);
+        Print_PNG (node -> right, fout);
     }
+}
+
+//=============================================================================
+
+void Make_Fout (node_t *node, FILE *fout)
+{
+    Print_Fout (node, fout);
+}
+
+//-----------------------------------------------------------------------------
+
+void Print_Fout (node_t *node, FILE *fout)
+{
+    fprintf (fout, " {'%s'", node -> data);
+
+    if (node -> left)
+    {
+        Make_Fout (node -> left, fout);
+    }
+    else
+    {
+        fprintf (fout, " nill");
+    }
+
+    if (node -> right)
+    {
+        Make_Fout (node -> right, fout);
+    }
+    else
+    {
+        fprintf (fout, " nill");
+    }
+
+    fprintf (fout, "}");
 }
