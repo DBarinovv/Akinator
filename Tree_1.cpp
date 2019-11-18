@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "TxLib.h"
+#include "Stack.h"
 
 //=============================================================================
 
@@ -14,7 +15,15 @@ struct node_t
 
 //=============================================================================
 
+void Menu (node_t *node, FILE *fin,  FILE *fout);
+
+//=============================================================================
+
 void Play (node_t *node, FILE *fout);
+
+void Definition (node_t *node, const char *name);
+
+bool Find_Same (node_t *node, const char *name, stack_t *way);
 
 //=============================================================================
 
@@ -46,19 +55,20 @@ int main ()
 
     FILE *fin   = fopen (name_of_fin,  "r");
     FILE *fout  = fopen ("output.txt", "r+");
-    FILE *foutD = fopen ("outdot.txt", "w");
 
     node_t *node = Make_Tree (fin);
-    txCreateWindow (1600, 1000);
 
-    while (!GetAsyncKeyState (VK_SHIFT))
-    {
-        Play (node, fout);
-        fseek (fout, 0, SEEK_SET);
-        Make_Fout (node, fout);
-        fseek (fout, 0, SEEK_SET);
-        node = Make_Tree (fout);
-    }
+    Menu (node, fin, fout);
+//    txCreateWindow (1600, 1000);
+
+//    while (!GetAsyncKeyState (VK_SHIFT))
+//    {
+//        Play (node, fout);
+//        fseek (fout, 0, SEEK_SET);
+//        Make_Fout (node, fout);
+//        fseek (fout, 0, SEEK_SET);
+//        node = Make_Tree (fout);
+//    }
 
 //    Play (node, fout);
 //    txInputBox ("AAA", "Katya");
@@ -71,6 +81,75 @@ int main ()
     fclose (fout);
 
     return 0;
+}
+
+//=============================================================================
+
+void Menu (node_t *node, FILE *fin,  FILE *fout)
+{
+    while (true)
+    {
+        PR_B(Choose mode:\n, Blue);
+//        printf ("Choose mode:\n");
+        printf ("Type [");
+        PR_B(0, White)
+        printf ("] to ");
+        PR_B(exit\n, Green)
+
+        printf ("Type [");
+        PR_B(1, White)
+        printf("] to ");
+        PR_B(play\n, Green)
+
+        printf ("Type [");
+        PR_B(2, White)
+        printf ("] to ");
+        PR_B(definition\n, Green);
+
+//        char c = getchar ();
+        char helper[50] = {};
+        gets (helper);
+
+        switch (helper[0])
+        {
+            case '0':
+            {
+                return ;
+            }
+
+            case '1':
+            {
+                txCreateWindow (1600, 1000);
+
+                while (!GetAsyncKeyState (VK_SHIFT))
+                {
+                    Play (node, fout);
+                    fseek (fout, 0, SEEK_SET);
+                    Make_Fout (node, fout);
+                    fseek (fout, 0, SEEK_SET);
+                    node = Make_Tree (fout);
+                }
+//                txDestroyWindow ()    ;
+
+                break;
+            }
+
+            case '2':
+            {
+                char name[20] = {};
+                CH(Green)
+                printf ("Type name, definition of what you want:\n");
+                CH_S
+                Definition (node, gets (name));
+                break;
+            }
+
+            default:
+                CH(Red)
+                printf ("\nWrong, try again!\n");
+                CH_S
+        }
+    }
 }
 
 //=============================================================================
@@ -120,17 +199,8 @@ void Play (node_t *node, FILE *fout)
                     if (GetAsyncKeyState (VK_LEFT))
                     {
                         Add_Node (node);
+
                         return ;
-
-//                        Make_Fout (start, fout);
-//                        fseek (fout, 0, SEEK_SET);
-//                        start = Make_Tree (fout);
-
-                        node = start;
-                        ok2 = 1;
-                        ok1 = 0;
-
-                        txSleep (300);
                     }
                     else if (GetAsyncKeyState (VK_RIGHT))
                     {
@@ -171,6 +241,91 @@ void Play (node_t *node, FILE *fout)
             }
         }
     }
+}
+
+//=============================================================================
+
+void Definition (node_t *node, const char *name)
+{
+    stack_t *way = nullptr;
+    STACK_CONSTRUCTOR(way)
+
+    if (!Find_Same (node, name, way))
+    {
+        printf ("ERROR!!!\n");
+    }
+
+    int *res = (int *)(way -> arr);
+
+    CH(Yellow)
+    printf ("%s", name);
+    CH_S
+    printf (":");
+
+    for (int i = 0; i < (way -> size) - 1; i++)
+    {
+        printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
+
+        if (res[i] == -1)
+        {
+            node = node->left;
+            PR_B(NE, Red)
+        }
+        else if (res[i] ==  1)
+        {
+            node = node->right;
+        }
+    }
+
+//    if (res[way->size] == 1)
+//        printf (" ")
+
+    printf (" %c%s!\n\n", tolower ((node->data)[0]), node->data + 1);
+
+//    Dump (way, 0, 0, "");
+}
+
+//-----------------------------------------------------------------------------
+
+bool Find_Same (node_t *node, const char *name, stack_t *way)
+{
+    int helper = C_poison;
+
+    if (node -> left)
+    {
+        Stack_Push (way, -1);
+
+        if (!Find_Same (node -> left, name, way))
+        {
+            Stack_Pop (way, &helper);
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    if (node -> right)
+    {
+        Stack_Push (way, 1);
+
+        if (!Find_Same (node -> right, name, way))
+        {
+            Stack_Pop (way, &helper);
+        }
+
+        else
+        {
+            return true;
+        }
+    }
+
+    if (strcmp ((node -> data), name) == 0)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 //=============================================================================
