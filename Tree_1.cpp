@@ -72,17 +72,17 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
     {
         PR_B(Choose mode:\n, Blue);
 
-        printf ("Type [");
+        printf ("Type [");       // Type [0] to exit
         PR_B(0, White)
         printf ("] to ");
         PR_B(exit\n, Green)
 
-        printf ("Type [");
+        printf ("Type [");       // Type [1] to play
         PR_B(1, White)
         printf("] to ");
         PR_B(play\n, Green)
 
-        printf ("Type [");
+        printf ("Type [");       // Type [2] to definition
         PR_B(2, White)
         printf ("] to ");
         PR_B(definition\n, Green);
@@ -259,7 +259,7 @@ void Definition (node_t *node, const char *name)
         }
     }
 
-    if (res[way->size - 1])
+    if (res[way->size - 1] == -1)
     {
         PR_B(NE, Red)
     }
@@ -325,11 +325,6 @@ node_t* Create_Node (char *data)
 }
 
 //=============================================================================
-
-//#define PRF\
-    fprintf (fout, "%s", line);  // printf in file fout
-
-//-----------------------------------------------------------------------------
 
 node_t *Make_Tree (FILE *fin)
 {
