@@ -35,8 +35,6 @@ void *Add_Node (node_t *node);
 
 //-----------------------------------------------------------------------------
 
-void B_Dump (node_t *node, const double x0, const double y0, const double x1, const double y1);
-
 void PNG_Dump (node_t *node);
 
 void Print_PNG (node_t *node, FILE *fout);
@@ -59,23 +57,6 @@ int main ()
     node_t *node = Make_Tree (fin);
 
     Menu (node, fin, fout);
-//    txCreateWindow (1600, 1000);
-
-//    while (!GetAsyncKeyState (VK_SHIFT))
-//    {
-//        Play (node, fout);
-//        fseek (fout, 0, SEEK_SET);
-//        Make_Fout (node, fout);
-//        fseek (fout, 0, SEEK_SET);
-//        node = Make_Tree (fout);
-//    }
-
-//    Play (node, fout);
-//    txInputBox ("AAA", "Katya");
-//    PNG_Dump (node);
-//    B_Dump (node, x0, y0, x1, y1);
-
-//    Make_Fout (node, fout);
 
     fclose (fin);
     fclose (fout);
@@ -90,7 +71,7 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
     while (true)
     {
         PR_B(Choose mode:\n, Blue);
-//        printf ("Choose mode:\n");
+
         printf ("Type [");
         PR_B(0, White)
         printf ("] to ");
@@ -106,7 +87,6 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
         printf ("] to ");
         PR_B(definition\n, Green);
 
-//        char c = getchar ();
         char helper[50] = {};
         gets (helper);
 
@@ -129,7 +109,6 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
                     fseek (fout, 0, SEEK_SET);
                     node = Make_Tree (fout);
                 }
-//                txDestroyWindow ()    ;
 
                 break;
             }
@@ -161,10 +140,7 @@ void Play (node_t *node, FILE *fout)
 
     double x0 = 760;
     double y0 = 300;
-    double x1 = 830;
-    double y1 = 400;
 
-//    txRectangle (x0, y0, x1, y1);
     txSelectFont ("Comic Sans MS", 56);
     txSetFillColor (TX_BLACK);
 
@@ -252,7 +228,13 @@ void Definition (node_t *node, const char *name)
 
     if (!Find_Same (node, name, way))
     {
-        printf ("ERROR!!!\n");
+        CH(Red)
+        printf ("ERROR!!! NO ELEM");
+        CH(Yellow)
+        printf (" %s\n\n", name);
+        CH_S
+
+        return ;
     }
 
     int *res = (int *)(way -> arr);
@@ -264,25 +246,25 @@ void Definition (node_t *node, const char *name)
 
     for (int i = 0; i < (way -> size) - 1; i++)
     {
-        printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
-
         if (res[i] == -1)
         {
-            node = node->left;
             PR_B(NE, Red)
+            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
+            node = node->left;
         }
         else if (res[i] ==  1)
         {
+            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
             node = node->right;
         }
     }
 
-//    if (res[way->size] == 1)
-//        printf (" ")
+    if (res[way->size - 1])
+    {
+        PR_B(NE, Red)
+    }
 
     printf (" %c%s!\n\n", tolower ((node->data)[0]), node->data + 1);
-
-//    Dump (way, 0, 0, "");
 }
 
 //-----------------------------------------------------------------------------
@@ -366,7 +348,6 @@ node_t *Make_Tree (FILE *fin)
 
     if (fscanf (fin, " %[^{ ]s", line) == EOF)
         return nullptr;
-//    printf ("Line = %s\n", line);
 
     if (strcmp (line, "nill") == 0)                // no left
     {
@@ -426,24 +407,6 @@ void *Add_Node (node_t *node)
 
     (node -> data) = (char *) calloc (50, sizeof (char));
     node -> data = (char *) txInputBox (difference, "DK");
-}
-//=============================================================================
-
-void B_Dump (node_t *node, const double x0, const double y0, const double x1, const double y1)
-{
-        txDrawText (x0, y0, x1, y1, node -> data);
-
-        if (node -> left)
-        {
-            txLine (x0, y1, (x0 + x1) / 4 + 35, y0 + 25);
-            B_Dump (node -> left, (x0 + x1) / 4 - 35, y0 + 25, (x0 + x1) / 4 + 35, y1 + 25);
-        }
-
-        if (node -> right)
-        {
-            txLine (x1, y1, 1000 - ((x0 + x1) / 2) / 2 - 35, y0 + 25);
-            B_Dump (node -> right, (1000 - (x0 + x1) / 2) / 2 - 35 , y0 + 25, (1000 - (x0 + x1) / 2) / 2 + 35, y1 + 25);
-        }
 }
 
 //=============================================================================
