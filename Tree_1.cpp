@@ -45,17 +45,27 @@ int main ()
     char *name_of_fin = "input.txt";
 
     FILE *fin   = fopen (name_of_fin,  "r");
-    FILE *fout  = fopen ("output.txt", "w");
+    FILE *fout  = fopen ("output.txt", "r+");
     FILE *foutD = fopen ("outdot.txt", "w");
 
     node_t *node = Make_Tree (fin);
+    txCreateWindow (1600, 1000);
+
+    while (!GetAsyncKeyState (VK_SHIFT))
+    {
+        Play (node, fout);
+        fseek (fout, 0, SEEK_SET);
+        Make_Fout (node, fout);
+        fseek (fout, 0, SEEK_SET);
+        node = Make_Tree (fout);
+    }
 
 //    Play (node, fout);
 //    txInputBox ("AAA", "Katya");
 //    PNG_Dump (node);
 //    B_Dump (node, x0, y0, x1, y1);
 
-    Make_Fout (node, fout);
+//    Make_Fout (node, fout);
 
     fclose (fin);
     fclose (fout);
@@ -69,8 +79,6 @@ void Play (node_t *node, FILE *fout)
 {
     char *trip = (char *) calloc (100, sizeof (char));
     node_t *start = node;
-
-    txCreateWindow (1600, 1000);
 
     double x0 = 760;
     double y0 = 300;
@@ -112,13 +120,16 @@ void Play (node_t *node, FILE *fout)
                     if (GetAsyncKeyState (VK_LEFT))
                     {
                         Add_Node (node);
+                        return ;
+
 //                        Make_Fout (start, fout);
-//                        exit (1);
+//                        fseek (fout, 0, SEEK_SET);
 //                        start = Make_Tree (fout);
+
                         node = start;
                         ok2 = 1;
                         ok1 = 0;
-//                        node = start;
+
                         txSleep (300);
                     }
                     else if (GetAsyncKeyState (VK_RIGHT))
@@ -166,8 +177,8 @@ void Play (node_t *node, FILE *fout)
 
 node_t* Create_Node (char *data)
 {
-    node_t *node = (node_t *) calloc (1, sizeof (node_t));
-    (node -> data) = (char *) calloc (20, sizeof (1));
+    node_t *node = (node_t *) calloc (1, sizeof (node_t) + 2);
+    (node -> data) = (char *) calloc (25, sizeof (char));
 
     strcpy (node -> data, data);
     node -> left  = nullptr;
@@ -258,6 +269,7 @@ void *Add_Node (node_t *node)
     strcat (difference, " and ");
     strcat (difference, node -> data);
 
+    (node -> data) = (char *) calloc (50, sizeof (char));
     node -> data = (char *) txInputBox (difference, "DK");
 }
 //=============================================================================
@@ -316,6 +328,7 @@ void Print_PNG (node_t *node, FILE *fout)
 
 void Make_Fout (node_t *node, FILE *fout)
 {
+    fseek (fout, 0, SEEK_SET);
     Print_Fout (node, fout);
 }
 
@@ -327,7 +340,7 @@ void Print_Fout (node_t *node, FILE *fout)
 
     if (node -> left)
     {
-        Make_Fout (node -> left, fout);
+        Print_Fout (node -> left, fout);
     }
     else
     {
@@ -336,7 +349,7 @@ void Print_Fout (node_t *node, FILE *fout)
 
     if (node -> right)
     {
-        Make_Fout (node -> right, fout);
+        Print_Fout (node -> right, fout);
     }
     else
     {
