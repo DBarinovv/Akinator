@@ -92,7 +92,6 @@ const elem_t C_saver_right = 0xDED;
                                                                                                                       \
     (*elem).name = #elem;                                                                                             \
                                                                                                                       \
-    RE_HASH(elem)                                                                                                     \
 }
 
 //=============================================================================
@@ -193,10 +192,6 @@ bool Stack_Push (stack_t* this_, elem_t elem)
     }
 
     (this_ -> arr) [(this_ -> size)++] = elem;
-
-    RE_HASH(this_)
-
-    ASSERT_OK(AFTER, Stack_Push)
 
     return true;
 }

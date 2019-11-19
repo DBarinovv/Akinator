@@ -21,9 +21,15 @@ void Menu (node_t *node, FILE *fin,  FILE *fout);
 
 void Play (node_t *node, FILE *fout);
 
-void Definition (node_t *node, const char *name);
+void Definition (node_t *node);
 
 bool Find_Same (node_t *node, const char *name, stack_t *way);
+
+void Difference (node_t *node);
+
+void Print_Definition_Of_Name (node_t *node, const int *res, const int len);
+
+void Print_Name1_And_Name2 (const char *name1, const char *name2);
 
 //=============================================================================
 
@@ -87,6 +93,11 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
         printf ("] to ");
         PR_B(definition\n, Green);
 
+        printf ("Type [");       // Type [3] to difference
+        PR_B(3, White)
+        printf ("] to ");
+        PR_B(difference\n, Green)
+
         char helper[50] = {};
         gets (helper);
 
@@ -115,11 +126,13 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
 
             case '2':
             {
-                char name[20] = {};
-                CH(Green)
-                printf ("Type name, definition of what you want:\n");
-                CH_S
-                Definition (node, gets (name));
+                Definition (node);
+                break;
+            }
+
+            case '3':
+            {
+                Difference (node);
                 break;
             }
 
@@ -135,9 +148,6 @@ void Menu (node_t *node, FILE *fin,  FILE *fout)
 
 void Play (node_t *node, FILE *fout)
 {
-    char *trip = (char *) calloc (100, sizeof (char));
-    node_t *start = node;
-
     double x0 = 760;
     double y0 = 300;
 
@@ -221,8 +231,13 @@ void Play (node_t *node, FILE *fout)
 
 //=============================================================================
 
-void Definition (node_t *node, const char *name)
+void Definition (node_t *node)
 {
+    char name[20] = {};
+    PR_B(Type name definition of what you want:\n, Green)
+
+    gets (name);
+
     stack_t *way = nullptr;
     STACK_CONSTRUCTOR(way)
 
@@ -244,27 +259,7 @@ void Definition (node_t *node, const char *name)
     CH_S
     printf (":");
 
-    for (int i = 0; i < (way -> size) - 1; i++)
-    {
-        if (res[i] == -1)
-        {
-            PR_B(NE, Red)
-            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
-            node = node->left;
-        }
-        else if (res[i] ==  1)
-        {
-            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
-            node = node->right;
-        }
-    }
-
-    if (res[way->size - 1] == -1)
-    {
-        PR_B(NE, Red)
-    }
-
-    printf (" %c%s!\n\n", tolower ((node->data)[0]), node->data + 1);
+    Print_Definition_Of_Name (node, res, way->size - 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -308,6 +303,149 @@ bool Find_Same (node_t *node, const char *name, stack_t *way)
     }
 
     return false;
+}
+
+//=============================================================================
+
+void Difference (node_t *node)
+{
+    char name1[20] = {};
+    char name2[20] = {};
+
+    stack_t *way1 = nullptr;
+    STACK_CONSTRUCTOR(way1)
+    stack_t *way2 = nullptr;
+    STACK_CONSTRUCTOR(way2)
+
+    PR_B(Type first name:\n, Green);
+    gets(name1);
+
+    while (!Find_Same (node, name1, way1))
+    {
+        PR_B(ERROR!!! NO ELEM, Red)
+        CH(Yellow)
+        printf (" %s\n\n", name1);
+        PR_B(Try again:\n, Green)
+        PR_B(Type first name:\n, Green);
+
+        gets(name1);
+    }
+
+    PR_B(Type second name:\n, Green);
+    gets(name2);
+
+    while (!Find_Same (node, name2, way2))
+    {
+        PR_B(ERROR!!! NO ELEM, Red)
+        CH(Yellow)
+        printf (" %s\n\n", name2);
+        PR_B(Try again:\n, Green)
+        PR_B(Type second name:\n, Green);
+
+        gets(name2);
+    }
+
+    int *res1 = (int *)(way1 -> arr);
+    int *res2 = (int *)(way2 -> arr);
+
+    int len1 = way1->size - 1;
+    int len2 = way2->size - 1;
+    int pos = 0;
+
+    if (res1[0] != res2[0])
+    {
+        Print_Name1_And_Name2 (name1, name2);
+        printf ("have no same:\n");
+
+        CH(Yellow)
+        printf ("%s", name1);
+        CH_S
+        printf (":");
+
+        Print_Definition_Of_Name (node, res1, len1);
+
+        CH(Yellow)
+        printf ("%s", name2);
+        CH_S
+        printf (":");
+
+        Print_Definition_Of_Name (node, res2, len2);
+    }
+    else if (strcmp (name1, name2) == 0)
+    {
+        Print_Name1_And_Name2 (name1, name2);
+        printf (" are same and: ");
+        Print_Definition_Of_Name (node, res1, len1);
+    }
+    else
+    {
+        Print_Name1_And_Name2 (name1, name2);
+        printf (" are:");
+
+        while (res1[pos] == res2[pos])
+        {
+            if (res1[pos] == -1)
+            {
+                PR_B(NE, Red)
+                printf (" %s, ", node->data);
+                node = node->left;
+            }
+            else
+            {
+                printf (" %s, ", node->data);
+                node = node->right;
+            }
+
+            pos++;
+        }
+
+        printf ("\n but %s:", name1);
+        Print_Definition_Of_Name (node, res1 + pos, len1);
+
+        printf ("%s:", name2);
+        Print_Definition_Of_Name (node, res2 + pos, len2);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+void Print_Definition_Of_Name (node_t *node, const int *res, const int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        if (res[i] == -1)
+        {
+            PR_B(NE, Red)
+            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
+            node = node->left;
+        }
+        else if (res[i] ==  1)
+        {
+            printf (" %c%s, ", tolower ((node->data)[0]), node->data + 1);
+            node = node->right;
+        }
+    }
+
+    if (res[len] == -1)
+    {
+        PR_B(NE, Red)
+    }
+
+    printf (" %c%s!\n\n", tolower ((node->data)[0]), node->data + 1);
+}
+
+
+//-----------------------------------------------------------------------------
+
+void Print_Name1_And_Name2 (const char *name1, const char *name2)
+{
+    CH(Yellow)
+    printf ("%s ", name1);
+    CH_S
+    printf ("and ");
+    CH(Yellow)
+    printf ("%s ", name2);
+    CH_S
 }
 
 //=============================================================================
